@@ -1,0 +1,63 @@
+{
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/api/produtos/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "servico-estoque", "Port": 5005 }],
+      "UpstreamPathTemplate": "/api/produtos/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/produtos",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "servico-estoque", "Port": 5005 }],
+      "UpstreamPathTemplate": "/api/produtos",
+      "UpstreamHttpMethod": [ "Get", "Post" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/pedidos/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "servico-pedidos", "Port": 5004 }],
+      "UpstreamPathTemplate": "/api/pedidos/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/pedidos",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "servico-pedidos", "Port": 5004 }],
+      "UpstreamPathTemplate": "/api/pedidos",
+      "UpstreamHttpMethod": [ "Get", "Post" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/lotes/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "servico-producao", "Port": 5001 }],
+      "UpstreamPathTemplate": "/api/lotes/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/lotes",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "servico-producao", "Port": 5001 }],
+      "UpstreamPathTemplate": "/api/lotes",
+      "UpstreamHttpMethod": [ "Get", "Post" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/qualidade/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "servico-qualidade", "Port": 5002 }],
+      "UpstreamPathTemplate": "/api/qualidade/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/passaporte/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "servico-rastreabilidade", "Port": 5003 }],
+      "UpstreamPathTemplate": "/api/passaporte/{everything}",
+      "UpstreamHttpMethod": [ "Get" ]
+    }
+  ],
+  "GlobalConfiguration": {
+    "BaseUrl": "http://localhost:8080"
+  }
+}

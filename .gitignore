@@ -1,0 +1,7 @@
+**/bin/
+**/obj/
+data/
+publicacao_producao/
+*.db
+*.db-shm
+*.db-wal

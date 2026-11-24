@@ -1,0 +1,73 @@
+ROTEIRO DE DEMONSTRACAO E TESTES - VINHERIA AGNELLO
+
+Premissas:
+
+  - Todos os servicos e containers devem estar em execucao via Docker Compose.
+  - Todas as requisicoes sao direcionadas exclusivamente ao API Gateway na
+    porta 8080.
+  - Formato de comunicacao: HTTP / JSON.
+
+CENARIO 1: FLUXO DE PRODUCAO E RASTREABILIDADE ("DA UVA A TACA")
+
+Passo 1: 
+Criacao de Lote no Servico de Producao 
+Metodo: POST URL: http://localhost:8080/api/lotes 
+Header: Content-Type: application/json 
+Body: 
+{
+"codigoLote": "LOTE-AGNELLO-02", "uva": "Cabernet Sauvignon", "safra": 2026,
+"tanqueFermentacao": "Tanque-Inox-04", "barricaCarvalho": "Carvalho-Frances-B08"
+} Retorno esperado: Status 201 Created. Evento gerado: Publicacao automatica de
+"vinheria/producao/lote-criado" via MQTT.
+
+
+Passo 2: 
+Emissao de Laudo Tecnico no Servico de Qualidade 
+Metodo: POST URL:http://localhost:8080/api/qualidade/laudos 
+Header: Content-Type:
+application/json 
+Body: 
+{ "codigoLote": "LOTE-AGNELLO-02", "ph": 3.60,
+"teorAlcoolico": 13.8, "aprovado": true, "observacoes": "Lote aprovado com
+excelente maturacao em carvalho." } 
+Retorno esperado: Status 200 OK. Evento gerado: Publicacao automatica de "vinheria/qualidade/lote-aprovado" via MQTT.
+
+Passo 3: Consulta do Passaporte no Servico de Rastreabilidade 
+Metodo: GET URL: http://localhost:8080/api/passaporte/LOTE-AGNELLO-02 
+Body: 
+Nenhum Retorno esperado: Status 200 OK com o consolidado: { "id": 1, "codigoLote":
+"LOTE-AGNELLO-02", "uva": "Cabernet Sauvignon", "safra": 2026,
+"tanqueFermentacao": "Tanque-Inox-04", "barricaCarvalho":
+"Carvalho-Frances-B08", "certificacaoEnologica": true, "teorAlcoolico": 13.8,
+"mensagemAoConsumidor": "Da uva à taça: produzido com controle rigoroso de
+qualidade." }
+
+
+
+CENARIO 2: SAGA PATTERN DE VENDA E RESERVA DE ESTOQUE (COREOGRAFIA MQTT)
+
+Passo 1: Cadastro de Produto com Saldo Inicial no Servico de Estoque 
+Metodo: POST URL: http://localhost:8080/api/produtos Header: Content-Type:
+application/json 
+Body: { "nome": "Agnello Cabernet Sauvignon", "tipo": "Tinto",
+"uva": "Cabernet Sauvignon", "safra": 2019, "pais": "Brasil", "preco": 189.00,
+"quantidade": 150 } Retorno esperado: Status 201 Created com produto id 1 e
+quantidade 150.
+
+Passo 2: Criacao de Pedido no Servico de Vendas 
+Metodo: POST URL: http://localhost:8080/api/pedidos Header: Content-Type: application/json 
+Body: 
+{"clienteNome": "Lucas Avila", "clienteEmail": "lucas@email.com",
+"formaPagamento": "PIX", "itens": [ { "produtoId": 1, "quantidade": 2,
+"precoUnitario": 189.00 } ] } 
+Retorno esperado: Status 201 Created (pedido criado com status inicial "Pendente"). 
+Evento gerado: Publicacao de "vinheria/pedidos/criado" via MQTT. Acao automatica: Servico de Estoque consome
+o evento, reserva as 2 unidades e emite "vinheria/estoque/resultado-reserva".
+
+Passo 3: Validacao da Confirmacao do Pedido Metodo: GET URL:
+http://localhost:8080/api/pedidos/1 Body: Nenhum Retorno esperado: Status 200 OK
+com campo "status": "Confirmado".
+
+Passo 4: Validacao da Baixa de Estoque Fisico Metodo: GET URL:
+http://localhost:8080/api/produtos/1 Body: Nenhum Retorno esperado: Status 200
+OK com campo "quantidade": 148 (saldo deduzido de 150 para 148).

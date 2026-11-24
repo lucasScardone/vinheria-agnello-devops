@@ -1,0 +1,46 @@
+networks:
+  rede-vinheria:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
+          gateway: 172.28.0.1
+
+services:
+  servico-estoque:
+    build:
+      context: ./src/ServicoEstoque
+      dockerfile: Dockerfile
+    container_name: servico-estoque
+    hostname: servico-estoque
+    restart: on-failure
+    ports:
+      - "5005:5005"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5005
+    volumes:
+      - ./data/estoque:/app/data
+    networks:
+      - rede-vinheria
+
+  servico-pedidos:
+    build:
+      context: ./src/ServicoPedidos
+      dockerfile: Dockerfile
+    container_name: servico-pedidos
+    hostname: servico-pedidos
+    restart: on-failure
+    ports:
+      - "5004:5004"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5004
+      - ESTOQUE_URL=http://servico-estoque:5005
+    volumes:
+      - ./data/pedidos:/app/data
+    networks:
+      - rede-vinheria
+    depends_on:
+      - servico-estoque
